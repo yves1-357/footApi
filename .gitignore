@@ -1,0 +1,14 @@
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+.idea/
+bin/
+obj/
+wwwroot/lib/
+*.log
+logs/
+wwwroot/dist/
+wwwroot/node_modules/
+appsettings.json
