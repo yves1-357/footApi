@@ -16,6 +16,14 @@ namespace footApi.Services
     {
         public int Id { get; set; }
         public string Date { get; set; }
+        public Status Status { get; set; }
+    }
+
+    public class Status
+    {
+        public string Long { get; set; } // Ex:premier mi-temps, "match fini"
+        public string Short { get; set; } // ex: "1h"
+        public int? Elapsed { get; set; } // minute en cours 
     }
 
     public class League
@@ -56,6 +64,48 @@ namespace footApi.Services
         {
             _httpClient = httpClient;
         }
+
+        private string ConvertToBelgiumTime(string utcTime, Status status)
+        {
+            DateTime utcDateTime;
+            if (!DateTime.TryParse(utcTime, null, System.Globalization.DateTimeStyles.AdjustToUniversal, out utcDateTime))
+            {
+                return "unknown";
+            }
+
+            utcDateTime = DateTime.SpecifyKind(utcDateTime, DateTimeKind.Utc);
+            
+            //convertir en heure belge
+            TimeZoneInfo belgiumTimeZone;
+            try
+            {
+                belgiumTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"); // Windows"
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                try
+                {
+                    belgiumTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Brussels"); // Linux/MacOS
+                }
+                catch (TimeZoneNotFoundException)
+                {
+                    Console.WriteLine("impossible de trouver l'horaire");
+                    return utcDateTime.ToString("HH:mm"); // On retourne l'heure en UTC pour éviter un crash
+                }
+            }
+            DateTime belgiumDateTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, belgiumTimeZone);
+
+            switch (status.Short)
+            {
+                case "NS": return belgiumDateTime.ToString("HH:mm"); // affichage heure match non debuté
+                case "1H":
+                    case "2H": return $"{status.Elapsed}'";// Match en cours (affiche la minute)
+                case "HT": return "Half-Time"; // Mi-temps
+                case "FT": return "Full-Time"; // Match-terminé
+                case "AET": return "Prolongations";
+                default: return belgiumDateTime.ToString("HH:mm");
+            }
+        }
         
         private static int GetLeaguePriority(string country)
         {
@@ -82,8 +132,16 @@ namespace footApi.Services
                 var response = await _httpClient.GetFromJsonAsync<ApiResponse>($"fixtures?date={todayDate}");
                 if (response == null || response.Response == null)
                 {
-                    Console.WriteLine("⚠ Réponse API vide ou invalide !");
+                    Console.WriteLine("aucun match trouvé !");
                     return new List<Match>();
+                }
+                
+                Console.WriteLine($"✅ {response.Response.Count} matchs trouvés !");
+                //appliquer l'heure 
+                foreach (var match in response.Response)
+                {
+                    Console.WriteLine($"Match : {match.Teams.Home.Name} vs {match.Teams.Away.Name} - Heure (UTC) : {match.Fixture.Date}");
+                    match.Fixture.Date = ConvertToBelgiumTime(match.Fixture.Date, match.Fixture.Status);
                 }
                 
                 //trier les matchs par priorité
