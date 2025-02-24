@@ -1,0 +1,89 @@
+﻿@page "/"
+@using footApi.Services
+@inject FootService FootService
+@using System.Threading.Tasks;
+@using System.Collections.Generic;
+
+<h1>Le Onze</h1>
+<!-- Boutons les matchs du jour ou en direct -->
+<div>
+    <button @onclick="LoadTodayMatches" class="btn @(showTodayMatches ? "btn-primary" : "btn-outline-primary")">
+    Today
+</button>
+
+    <button @onclick="LoadLiveMatches" class="btn @(showLiveMatches ? "btn-danger" : "btn-outline-danger")">
+        Live
+    </button>
+</div>
+@if (matches == null)
+{
+    <p>Chargement des matchs...</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Heure</th>
+            <th>Ligue</th>
+            <th>Match</th>
+            <th>Score</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var match in matches)
+        {
+            <tr>
+                <td>@match.Fixture.Date</td>
+                <td>]@match.League.Name</td>
+                <td>
+                    <img src="@match.Teams.Home.Logo" width="20"/> @match.Teams.Home.Name
+                    vs
+                    @match.Teams.Away.Name <img src="@match.Teams.Away.Logo" width="20"/>
+                </td>
+                <td>@(match.Goals.Home ?? 0) - @(match.Goals.Away ?? 0)</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+@code {
+
+    private List<footApi.Services.Match> matches;
+    private bool showLiveMatches = false;
+    private bool showTodayMatches = true;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTodayMatches(); // au demarage d'abbord les matchs du jour 
+    }
+
+    private async Task LoadTodayMatches()
+    {
+        Console.WriteLine("chargement matchs du jour...");
+        matches = await FootService.GetTodayMatchesAsync();
+        showTodayMatches = true;
+        showLiveMatches = false;
+        StateHasChanged();
+
+    }
+
+    private async Task LoadLiveMatches()
+    {
+        Console.WriteLine("chargement des matchs en direct..");
+        matches = await FootService.GetLiveMatchesAsync();
+        showTodayMatches = false;
+        showLiveMatches = true;
+        StateHasChanged();
+    }
+
+    private async Task ToggleLiveMatches()
+    {
+        showLiveMatches = !showLiveMatches;
+        if (showLiveMatches)
+            await LoadLiveMatches();
+        else 
+            await LoadTodayMatches();
+    }
+
+}
