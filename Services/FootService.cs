@@ -22,6 +22,7 @@ namespace footApi.Services
     {
         public string Name { get; set; }
         public string Country { get; set; }
+        public string Logo { get; set; }
     }
 
     public class Teams
@@ -55,6 +56,19 @@ namespace footApi.Services
         {
             _httpClient = httpClient;
         }
+        
+        private static int GetLeaguePriority(string country)
+        {
+            //priorité pour les ligues européenes
+            string[] europe =
+                { "England", "Spain", "Italy", "Germany", "France", "Portugal", "Netherlands", "Belgium" };
+            // 2 ligue americaine
+            string[] americas = { "USA", "Mexico", "Brazil", "Argentina", "Colombia", "Chile" };
+
+            if (europe.Contains(country)) return 1;
+            if (americas.Contains(country)) return 2;
+            return 3; // le reste
+        }
 
         public async Task<List<Match>> GetTodayMatchesAsync()
         {
@@ -71,9 +85,14 @@ namespace footApi.Services
                     Console.WriteLine("⚠ Réponse API vide ou invalide !");
                     return new List<Match>();
                 }
-
-                Console.WriteLine($"✅ {response.Response.Count} matchs reçus !");
-                return response.Response;
+                
+                //trier les matchs par priorité
+                var sortedMatches = response.Response
+                    .OrderBy(m => GetLeaguePriority(m.League.Country)) // tri priorité de ligue
+                    .ThenBy(m => m.League.Name)// trie par nom ligue
+                    .ToList();
+                
+                return  sortedMatches;
             }
             catch (Exception ex)
             {
@@ -104,6 +123,8 @@ namespace footApi.Services
                 return new List<Match>();
             }
         }
+
+        
     }
     
 }
