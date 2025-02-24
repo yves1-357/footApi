@@ -21,31 +21,44 @@
 }
 else
 {
-    <table class="table table-striped">
-        <thead>
-        <tr>
-            <th>Heure</th>
-            <th>Ligue</th>
-            <th>Match</th>
-            <th>Score</th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach (var match in matches)
-        {
+    @foreach (var leagueGroup in matches.GroupBy(m => m.League))
+    {
+        <h2>
+            @if (!string.IsNullOrEmpty(leagueGroup.Key.Logo))
+            {
+                <img src="@leagueGroup.Key.Logo"width="30"/>
+            }
+            else
+            {
+                <img src="images/default-league.png" width="30" />
+            }
+            @leagueGroup.Key.Name (@leagueGroup.Key.Country)
+        </h2>
+
+        <table class="table table-striped">
+            <thead>
             <tr>
-                <td>@match.Fixture.Date</td>
-                <td>]@match.League.Name</td>
-                <td>
-                    <img src="@match.Teams.Home.Logo" width="20"/> @match.Teams.Home.Name
-                    vs
-                    @match.Teams.Away.Name <img src="@match.Teams.Away.Logo" width="20"/>
-                </td>
-                <td>@(match.Goals.Home ?? 0) - @(match.Goals.Away ?? 0)</td>
+                <th>Heure</th>
+                <th>Match</th>
+                <th>Score</th>
             </tr>
-        }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            @foreach (var match in leagueGroup.ToList())
+            {
+                <tr>
+                    <td>@match.Fixture.Date</td>
+                    <td>
+                        <img src="@match.Teams.Home.Logo" width="20"/> @match.Teams.Home.Name
+                        vs
+                        @match.Teams.Away.Name <img src="@match.Teams.Away.Logo" width="20"/>
+                    </td>
+                    <td>@(match.Goals.Home ?? 0) - @(match.Goals.Away ?? 0)</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
 }
 @code {
 
