@@ -84,6 +84,9 @@ else
 }
 
 @code {
+    // cache qui stocke les matchs
+    private Dictionary<string, List<footApi.Services.Match>> matchCache = new();
+
     private List<footApi.Services.Match> matches = new();
     private List<footApi.Services.Match> filteredMatches = new();
     private bool showLiveMatches = false;
@@ -95,11 +98,22 @@ else
     protected override async Task OnInitializedAsync()
     {
         await LoadTodayMatches();
+        _ = RefreshTimeAsync();
+    }
+
+    private async Task RefreshTimeAsync()
+    {
+        while (true)
+        {
+            await Task.Delay(TimeSpan.FromMinutes(5));
+            Console.WriteLine("Timer: Actualisation des matchs d'aujourd'hui");
+            await LoadTodayMatches();
+        }
     }
 
     private async Task PreviousDay()
     {
-        if ((DateTime.UtcNow - selectedDate).Days < 15 && (selectedDate - DateTime.UtcNow).Days < 15)
+        if (selectedDate.Date == DateTime.UtcNow.Date)
         {
             selectedDate = selectedDate.AddDays(-1);
             UpdateDateText();
@@ -110,7 +124,7 @@ else
 
     private async Task NextDay()
     {
-        if ((selectedDate - DateTime.UtcNow).Days > 15 && (selectedDate - DateTime.UtcNow).Days > 15)
+        if (selectedDate.Date == DateTime.UtcNow.Date)
         {
             selectedDate = selectedDate.AddDays(1);
             UpdateDateText();
@@ -122,7 +136,7 @@ else
     private void UpdateDateText()
     {
         if (selectedDate.Date == DateTime.UtcNow.Date)
-            currentDateText = "Today";
+            currentDateText = "";
         else if (selectedDate.Date == DateTime.UtcNow.Date.AddDays(-1))
             currentDateText = "Yesterday";
         else if (selectedDate.Date == DateTime.UtcNow.Date.AddDays(1))
@@ -133,15 +147,29 @@ else
 
     private async Task LoadMatchesForSelectedDate()
     {
-        Console.WriteLine($"Chargement des matchs pour {selectedDate:yyyy-MM-dd}...");
-        
-        //excuter sans bloquer l'interface
-        matches = await FootService.GetMatchesByDateAsync(selectedDate);
-        if (matches == null || matches.Count == 0)
+        string dateKey = selectedDate.ToString("yyyy-MM-dddd");
+        if (matchCache.ContainsKey(dateKey))
         {
-            Console.WriteLine("⚠ Aucun match trouvé pour cette date !");
-            matches = new List<footApi.Services.Match>();
+            Console.WriteLine($"Utilisation du cache pour la date {dateKey}");
+            matches = matchCache[dateKey];
         }
+        else
+        {
+            Console.WriteLine($"Chargement des matchs pour {selectedDate:yyyy-MM-dd}...");
+
+            //excuter sans bloquer l'interface
+            matches = await FootService.GetMatchesByDateAsync(selectedDate);
+            if (matches == null || matches.Count == 0)
+            {
+                Console.WriteLine("⚠ Aucun match trouvé pour cette date !");
+                matches = new List<footApi.Services.Match>();
+            }
+            else
+            {
+                matchCache[dateKey] = matches;
+            }
+        }
+
         ApplyFilters(); // Appliquer les filtres après récupération des données
         StateHasChanged();
 
