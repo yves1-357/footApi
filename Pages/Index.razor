@@ -1,27 +1,20 @@
 ﻿@page "/"
 @using footApi.Services
 @inject FootService FootService
-@using System.Threading.Tasks;
-@using System.Collections.Generic;
 @using System.Globalization
 
-
 <h1>Le Onze</h1>
-<!-- naviguer des jours -->
-<div class="date-navigation">
-    <button @onclick="PreviousDay" class="btn btn-outline-secondary">
-        <img src="wwwroot/icons/prev-calendar.png" width="20" />
-    </button>
-    
-    <span class="selected-date">
+
+<!-- Navigation des jours -->
+<div class="date-navigation" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+    <button @onclick="PreviousDay" class="btn btn-success"> ◀ </button>
+
+    <span class="selected-date " style="font-size: 18px; font-weight:bold;">
         @currentDateText
     </span>
-    
-    <button @onclick="NextDay" class="btn btn-outline-secondary">
-        <img src="wwwroot/icons/next-calendar.png" width="20" />
-    </button>
 
-    <!-- Boutons Today et Live -->
+    <button @onclick="NextDay" class="btn btn-success"> ▶ </button>
+
     <button @onclick="LoadTodayMatches" class="btn @(showTodayMatches ? "btn-primary" : "btn-outline-primary")">
         Today
     </button>
@@ -30,34 +23,32 @@
         Live
     </button>
 </div>
-<!-- Filtrage par genre -->
-<div class="filters">
 
-        <button @onclick="ShowAllMatches" class="btn @(selectedCategory == "All" ? "btn-dark": "btn-outline-dark")">
-            Tout 
-        </button>
-        <button @onclick="ShowFemaleMatches" class="btn @(selectedCategory == "Female" ? "btn-danger" : "btn-outline-danger")">
+<!-- Filtres Homme/Femme -->
+<div class="filters" style="margin-bottom: 15px;">
+    <button @onclick="ShowAllMatches" class="@("btn " + (selectedCategory == "All" ? "btn-dark": "btn-outline-dark"))">
+        Tout 
+    </button>
+    <button @onclick="ShowFemaleMatches" class="@("btn " + (selectedCategory == "Female" ? "btn-danger" : "btn-outline-danger"))">
         Femmes
-        </button>
-        <button @onclick="ShowMaleMatches" class="btn @(selectedCategory == "Male" ? "btn-primary" : "btn-outline-primary")">
+    </button>
+    <button @onclick="ShowMaleMatches" class="@("btn " + (selectedCategory == "Male" ? "btn-primary" : "btn-outline-primary"))">
         Hommes
-        </button>
+    </button>
 </div>
 
-@if (matches == null)
+@if (matches == null || matches.Count == 0)
 {
     <p>Chargement des matchs...</p>
 }
 else
 {
-    <!-- On groupe les matchs par ligue -->
-    @foreach (var leagueGroup in matches.GroupBy(m => new {m.League.Name,m.League.Country,m.League.Logo}))
+    @foreach (var leagueGroup in filteredMatches.GroupBy(m => new { m.League.Name, m.League.Country, m.League.Logo }))
     {
-        
         <h2>
             @if (!string.IsNullOrEmpty(leagueGroup.Key.Logo))
             {
-                <img src="@leagueGroup.Key.Logo"width="30"/>
+                <img src="@leagueGroup.Key.Logo" width="30"/>
             }
             else
             {
@@ -68,140 +59,186 @@ else
 
         <table class="table table-striped">
             <thead>
-            <tr>
-                <th>Heure</th>
-                <th>Match</th>
-                <th>Score</th>
-            </tr>
+                <tr>
+                    <th>Heure</th>
+                    <th>Match</th>
+                    <th>Score</th>
+                </tr>
             </thead>
             <tbody>
-            @foreach (var match in leagueGroup.ToList())
-            {
-                <tr>
-                    <td>
-                        @match.Fixture.Date
-                    </td>
-                    <td>
-                        <img src="@match.Teams.Home.Logo" width="20"/> @match.Teams.Home.Name
-                        vs
-                        @match.Teams.Away.Name <img src="@match.Teams.Away.Logo" width="20"/>
-                    </td>
-                    <td>@(match.Goals.Home ?? 0) - @(match.Goals.Away ?? 0)</td>
-                </tr>
-            }
+                @foreach (var match in leagueGroup)
+                {
+                    <tr>
+                        <td> @match.Fixture.Date </td>
+                        <td>
+                            <img src="@match.Teams.Home.Logo" width="20"/> @match.Teams.Home.Name
+                            vs
+                            @match.Teams.Away.Name <img src="@match.Teams.Away.Logo" width="20"/>
+                        </td>
+                        <td>@(match.Goals.Home ?? 0) - @(match.Goals.Away ?? 0)</td>
+                    </tr>
+                }
             </tbody>
         </table>
-        
     }
 }
-@code {
 
-    private List<footApi.Services.Match> matches;
+@code {
+    private List<footApi.Services.Match> matches = new();
+    private List<footApi.Services.Match> filteredMatches = new();
     private bool showLiveMatches = false;
     private bool showTodayMatches = true;
     private DateTime selectedDate = DateTime.UtcNow;
     private string currentDateText = "Today";
-    private string selectedCategory = "All"; // "All", "Female", "Male"
-    
+    private string selectedCategory = "All";
+
     protected override async Task OnInitializedAsync()
     {
-        await LoadTodayMatches(); // au demarage d'abbord les matchs du jour 
+        await LoadTodayMatches();
     }
 
     private async Task PreviousDay()
     {
-        if ((DateTime.UtcNow - selectedDate).Days < 15)
+        if ((DateTime.UtcNow - selectedDate).Days < 15 && (selectedDate - DateTime.UtcNow).Days < 15)
         {
             selectedDate = selectedDate.AddDays(-1);
             UpdateDateText();
             await LoadMatchesForSelectedDate();
+            StateHasChanged();
         }
     }
+
     private async Task NextDay()
     {
-        if ((selectedDate - DateTime.UtcNow).Days < 15)
+        if ((selectedDate - DateTime.UtcNow).Days > 15 && (selectedDate - DateTime.UtcNow).Days > 15)
         {
             selectedDate = selectedDate.AddDays(1);
             UpdateDateText();
             await LoadMatchesForSelectedDate();
+            StateHasChanged();
         }
     }
-    private  void UpdateDateText()
+
+    private void UpdateDateText()
     {
         if (selectedDate.Date == DateTime.UtcNow.Date)
-        {
             currentDateText = "Today";
-        } 
         else if (selectedDate.Date == DateTime.UtcNow.Date.AddDays(-1))
-        {
             currentDateText = "Yesterday";
-        }
         else if (selectedDate.Date == DateTime.UtcNow.Date.AddDays(1))
-        {
             currentDateText = "Tomorrow";
-        }
         else
-        {
             currentDateText = selectedDate.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
-        }
     }
 
     private async Task LoadMatchesForSelectedDate()
     {
         Console.WriteLine($"Chargement des matchs pour {selectedDate:yyyy-MM-dd}...");
+        
+        //excuter sans bloquer l'interface
         matches = await FootService.GetMatchesByDateAsync(selectedDate);
+        if (matches == null || matches.Count == 0)
+        {
+            Console.WriteLine("⚠ Aucun match trouvé pour cette date !");
+            matches = new List<footApi.Services.Match>();
+        }
+        ApplyFilters(); // Appliquer les filtres après récupération des données
         StateHasChanged();
+
     }
-    
+
     private async Task LoadTodayMatches()
     {
         selectedDate = DateTime.UtcNow;
         UpdateDateText();
         Console.WriteLine("chargement matchs du jour...");
+
         matches = await FootService.GetTodayMatchesAsync();
+        if (matches == null || matches.Count == 0)
+        {
+            Console.WriteLine("⚠ Aucun match trouvé pour cette date !");
+            matches = new List<footApi.Services.Match>();
+        }
+        ApplyFilters(); // Appliquer les filtres après récupération des données
+        StateHasChanged();
         showTodayMatches = true;
         showLiveMatches = false;
-        StateHasChanged();
-
     }
 
     private async Task LoadLiveMatches()
     {
         Console.WriteLine("chargement des matchs en direct..");
+
         matches = await FootService.GetLiveMatchesAsync();
+        if (matches == null || matches.Count == 0)
+        {
+            Console.WriteLine("⚠ Aucun match trouvé pour cette date !");
+            matches = new List<footApi.Services.Match>();
+        }
+        ApplyFilters(); // Appliquer les filtres après récupération des données
+        StateHasChanged();
         showTodayMatches = false;
         showLiveMatches = true;
-        StateHasChanged();
+        StateHasChanged(); 
     }
 
     private void ShowAllMatches()
     {
         selectedCategory = "All";
-        UpdateMatchDisplay();
+        ApplyFilters();
+        StateHasChanged();
     }
+
     private void ShowFemaleMatches()
     {
         selectedCategory = "Female";
-        UpdateMatchDisplay();
+        ApplyFilters();
+        StateHasChanged();
     }
+
     private void ShowMaleMatches()
     {
         selectedCategory = "Male";
-        UpdateMatchDisplay();
-    }
-    
-    private void UpdateMatchDisplay()
-    {
+        ApplyFilters();
         StateHasChanged();
     }
-    
-    private async Task ToggleLiveMatches()
+
+    private void ApplyFilters()
     {
-        showLiveMatches = !showLiveMatches;
-        if (showLiveMatches)
-            await LoadLiveMatches();
-        else 
-            await LoadTodayMatches();
+        if (matches == null || matches.Count == 0)
+        {
+            filteredMatches = new List<footApi.Services.Match>(); // Évite une erreur si `matches` est vide
+            StateHasChanged();
+            return;
+        }
+
+        List<footApi.Services.Match> filtered = new(matches); // Copie des matchs pour éviter de modifier `matches`
+
+        if (selectedCategory == "Female")
+        {
+            filtered = filtered.Where(m => 
+                m.League.Name.ToLower().Contains("women") || 
+                m.League.Name.ToLower().Contains("feminine") ||
+                m.League.Name.ToLower().Contains("w.") ||
+                m.League.Name.ToLower().Contains("ladies") ||
+                m.League.Name.ToLower().Contains("fem")
+            ).ToList();
+        }
+        else if (selectedCategory == "Male")
+        {
+            filtered = filtered.Where(m =>
+                !m.League.Name.ToLower().Contains("women") &&
+                !m.League.Name.ToLower().Contains("feminine") &&
+                !m.League.Name.ToLower().Contains("w.") &&
+                !m.League.Name.ToLower().Contains("ladies") &&
+                !m.League.Name.ToLower().Contains("fem")
+            ).ToList();
+        }
+
+        filteredMatches = filtered; // Mettre à jour la liste affichée
+        StateHasChanged();
     }
+
+    
 
 }
