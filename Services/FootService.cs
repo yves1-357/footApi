@@ -185,6 +185,8 @@ namespace footApi.Services
             try
             {
                 var response = await _httpClient.GetFromJsonAsync<ApiResponse>($"fixtures?date={todayDate}");
+                Console.WriteLine($"📢 Appel API : fixtures?date={todayDate}");
+
                 if (response == null || response.Response == null)
                 {
                     Console.WriteLine("aucun match trouvé !");
