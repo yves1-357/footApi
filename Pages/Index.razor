@@ -3,18 +3,47 @@
 @inject FootService FootService
 @using System.Threading.Tasks;
 @using System.Collections.Generic;
+@using System.Globalization
+
 
 <h1>Le Onze</h1>
-<!-- Boutons les matchs du jour ou en direct -->
-<div>
+<!-- naviguer des jours -->
+<div class="date-navigation">
+    <button @onclick="PreviousDay" class="btn btn-outline-secondary">
+        <img src="wwwroot/icons/prev-calendar.png" width="20" />
+    </button>
+    
+    <span class="selected-date">
+        @currentDateText
+    </span>
+    
+    <button @onclick="NextDay" class="btn btn-outline-secondary">
+        <img src="wwwroot/icons/next-calendar.png" width="20" />
+    </button>
+
+    <!-- Boutons Today et Live -->
     <button @onclick="LoadTodayMatches" class="btn @(showTodayMatches ? "btn-primary" : "btn-outline-primary")">
-    Today
-</button>
+        Today
+    </button>
 
     <button @onclick="LoadLiveMatches" class="btn @(showLiveMatches ? "btn-danger" : "btn-outline-danger")">
         Live
     </button>
 </div>
+<!-- Filtrage par genre -->
+<div class="filters">
+
+        <button @onclick="ShowAllMatches" class="btn @(selectedCategory == "All" ? "btn-dark": "btn-outline-dark")">
+            Tout 
+        </button>
+        <button @onclick="ShowFemaleMatches" class="btn @(selectedCategory == "Female" ? "btn-danger" : "btn-outline-danger")">
+        Femmes
+        </button>
+        <button @onclick="ShowMaleMatches" class="btn @(selectedCategory == "Male" ? "btn-primary" : "btn-outline-primary")">
+        Hommes
+        </button>
+</div>
+
 @if (matches == null)
 {
     <p>Chargement des matchs...</p>
@@ -24,7 +53,7 @@ else
     <!-- On groupe les matchs par ligue -->
     @foreach (var leagueGroup in matches.GroupBy(m => new {m.League.Name,m.League.Country,m.League.Logo}))
     {
-        <div class="league-container"> 
+        
         <h2>
             @if (!string.IsNullOrEmpty(leagueGroup.Key.Logo))
             {
@@ -62,7 +91,7 @@ else
             }
             </tbody>
         </table>
-        </div>
+        
     }
 }
 @code {
@@ -70,14 +99,64 @@ else
     private List<footApi.Services.Match> matches;
     private bool showLiveMatches = false;
     private bool showTodayMatches = true;
+    private DateTime selectedDate = DateTime.UtcNow;
+    private string currentDateText = "Today";
+    private string selectedCategory = "All"; // "All", "Female", "Male"
     
     protected override async Task OnInitializedAsync()
     {
         await LoadTodayMatches(); // au demarage d'abbord les matchs du jour 
     }
 
+    private async Task PreviousDay()
+    {
+        if ((DateTime.UtcNow - selectedDate).Days < 15)
+        {
+            selectedDate = selectedDate.AddDays(-1);
+            UpdateDateText();
+            await LoadMatchesForSelectedDate();
+        }
+    }
+    private async Task NextDay()
+    {
+        if ((selectedDate - DateTime.UtcNow).Days < 15)
+        {
+            selectedDate = selectedDate.AddDays(1);
+            UpdateDateText();
+            await LoadMatchesForSelectedDate();
+        }
+    }
+    private  void UpdateDateText()
+    {
+        if (selectedDate.Date == DateTime.UtcNow.Date)
+        {
+            currentDateText = "Today";
+        } 
+        else if (selectedDate.Date == DateTime.UtcNow.Date.AddDays(-1))
+        {
+            currentDateText = "Yesterday";
+        }
+        else if (selectedDate.Date == DateTime.UtcNow.Date.AddDays(1))
+        {
+            currentDateText = "Tomorrow";
+        }
+        else
+        {
+            currentDateText = selectedDate.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
+        }
+    }
+
+    private async Task LoadMatchesForSelectedDate()
+    {
+        Console.WriteLine($"Chargement des matchs pour {selectedDate:yyyy-MM-dd}...");
+        matches = await FootService.GetMatchesByDateAsync(selectedDate);
+        StateHasChanged();
+    }
+    
     private async Task LoadTodayMatches()
     {
+        selectedDate = DateTime.UtcNow;
+        UpdateDateText();
         Console.WriteLine("chargement matchs du jour...");
         matches = await FootService.GetTodayMatchesAsync();
         showTodayMatches = true;
@@ -95,6 +174,27 @@ else
         StateHasChanged();
     }
 
+    private void ShowAllMatches()
+    {
+        selectedCategory = "All";
+        UpdateMatchDisplay();
+    }
+    private void ShowFemaleMatches()
+    {
+        selectedCategory = "Female";
+        UpdateMatchDisplay();
+    }
+    private void ShowMaleMatches()
+    {
+        selectedCategory = "Male";
+        UpdateMatchDisplay();
+    }
+    
+    private void UpdateMatchDisplay()
+    {
+        StateHasChanged();
+    }
+    
     private async Task ToggleLiveMatches()
     {
         showLiveMatches = !showLiveMatches;
