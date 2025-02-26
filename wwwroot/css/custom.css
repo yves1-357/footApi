@@ -28,7 +28,7 @@ body {
 .date-navigation, .filters {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 15px;
     margin-bottom: 15px;
 }
 /* Boutons */
@@ -210,4 +210,40 @@ table.table th {
 
 .button-bar .btn-danger {
     background-color: #d9534f; /* Couleur rouge pour un bouton actif */
+}
+table.table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; 
+}
+
+table.table th,
+table.table td {
+    padding: 8px;
+    border-bottom: 1px solid #2c2c2c;
+    vertical-align: middle; /* Centrage vertical */
+    white-space: nowrap;    /* Empêche le texte de sauter à la ligne */
+    overflow: hidden;       /* Pour éviter le débordement */
+    text-overflow: ellipsis;/* Couper le texte si trop long */
+}
+
+/* Colonne 1: Heure */
+table.table th:nth-child(1),
+table.table td:nth-child(1) {
+    text-align: center;
+    width: 70px; 
+}
+
+/* Colonne 2: Match */
+table.table th:nth-child(2),
+table.table td:nth-child(2) {
+    text-align: left;
+    width: 300px; 
+}
+
+/* Colonne 3: Score */
+table.table th:nth-child(3),
+table.table td:nth-child(3) {
+    text-align: center;
+    width: 60px;
 }
