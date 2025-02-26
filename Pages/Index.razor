@@ -3,85 +3,88 @@
 @inject FootService FootService
 @using System.Globalization
 
-<h1>Le Onze</h1>
+<!-- CONTENT (colonne droite) -->
+    <div class="content">
+        <h1>Le Onze</h1>
 
-<!-- Navigation des jours -->
-<div class="date-navigation" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-    <button @onclick="PreviousDay" class="btn btn-success"> ◀ </button>
+        <!-- Navigation des jours -->
+        <div class="date-navigation">
+            <button @onclick="PreviousDay" class="btn btn-success"> ◀ </button>
 
-    <span class="selected-date " style="font-size: 18px; font-weight:bold;">
-        @currentDateText
-    </span>
+            <span class="selected-date" style="font-size: 18px; font-weight:bold;">
+                @currentDateText
+            </span>
 
-    <button @onclick="NextDay" class="btn btn-success"> ▶ </button>
+            <button @onclick="NextDay" class="btn btn-success"> ▶ </button>
 
-    <button @onclick="LoadTodayMatches" class="btn @(showTodayMatches ? "btn-primary" : "btn-outline-primary")">
-        Today
-    </button>
+            <button @onclick="LoadTodayMatches" class="btn @(showTodayMatches ? "btn-primary" : "")">
+                Today
+            </button>
 
-    <button @onclick="LoadLiveMatches" class="btn @(showLiveMatches ? "btn-danger" : "btn-outline-danger")">
-        Live
-    </button>
-</div>
+            <button @onclick="LoadLiveMatches" class="btn @(showLiveMatches ? "btn-danger" : "")">
+                Live
+            </button>
+        </div>
 
-<!-- Filtres Homme/Femme -->
-<div class="filters" style="margin-bottom: 15px;">
-    <button @onclick="ShowAllMatches" class="@("btn " + (selectedCategory == "All" ? "btn-dark": "btn-outline-dark"))">
-        Tout 
-    </button>
-    <button @onclick="ShowFemaleMatches" class="@("btn " + (selectedCategory == "Female" ? "btn-danger" : "btn-outline-danger"))">
-        Femmes
-    </button>
-    <button @onclick="ShowMaleMatches" class="@("btn " + (selectedCategory == "Male" ? "btn-primary" : "btn-outline-primary"))">
-        Hommes
-    </button>
-</div>
+        <!-- Filtres Homme/Femme -->
+        <div class="filters">
+            <button @onclick="ShowAllMatches" class="@("btn " + (selectedCategory == "All" ? "btn-dark": ""))">
+                Tout 
+            </button>
+            <button @onclick="ShowFemaleMatches" class="@("btn " + (selectedCategory == "Female" ? "btn-danger" : ""))">
+                Femmes
+            </button>
+            <button @onclick="ShowMaleMatches" class="@("btn " + (selectedCategory == "Male" ? "btn-primary" : ""))">
+                Hommes
+            </button>
+        </div>
 
-@if (matches == null || matches.Count == 0)
-{
-    <p>Chargement des matchs...</p>
-}
-else
-{
-    @foreach (var leagueGroup in filteredMatches.GroupBy(m => new { m.League.Name, m.League.Country, m.League.Logo }))
-    {
-        <h2>
-            @if (!string.IsNullOrEmpty(leagueGroup.Key.Logo))
+        @if (matches == null || matches.Count == 0)
+        {
+            <p>Chargement des matchs...</p>
+        }
+        else
+        {
+            @foreach (var leagueGroup in filteredMatches.GroupBy(m => new { m.League.Name, m.League.Country, m.League.Logo }))
             {
-                <img src="@leagueGroup.Key.Logo" width="30"/>
-            }
-            else
-            {
-                <img src="images/default-league.png" width="30" />
-            }
-            @leagueGroup.Key.Name (@leagueGroup.Key.Country)
-        </h2>
+                <h2>
+                    @if (!string.IsNullOrEmpty(leagueGroup.Key.Logo))
+                    {
+                        <img src="@leagueGroup.Key.Logo" width="30"/>
+                    }
+                    else
+                    {
+                        <img src="images/default-league.png" width="30" />
+                    }
+                    @leagueGroup.Key.Name (@leagueGroup.Key.Country)
+                </h2>
 
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Heure</th>
-                    <th>Match</th>
-                    <th>Score</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var match in leagueGroup)
-                {
-                    <tr>
-                        <td> @match.Fixture.Date </td>
-                        <td>
-                            <img src="@match.Teams.Home.Logo" width="20"/> @match.Teams.Home.Name
-                            vs
-                            @match.Teams.Away.Name <img src="@match.Teams.Away.Logo" width="20"/>
-                        </td>
-                        <td>@(match.Goals.Home ?? 0) - @(match.Goals.Away ?? 0)</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Heure</th>
+                            <th>Match</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var match in leagueGroup)
+                        {
+                            <tr>
+                                <td> @match.Fixture.Date </td>
+                                <td>
+                                    <img src="@match.Teams.Home.Logo" width="20"/> @match.Teams.Home.Name
+                                    vs
+                                    @match.Teams.Away.Name <img src="@match.Teams.Away.Logo" width="20"/>
+                                </td>
+                                <td>@(match.Goals.Home ?? 0) - @(match.Goals.Away ?? 0)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        }
+    </div>
 
 @code {
     // cache qui stocke les matchs
@@ -147,7 +150,7 @@ else
 
     private async Task LoadMatchesForSelectedDate()
     {
-        string dateKey = selectedDate.ToString("yyyy-MM-dddd");
+        string dateKey = selectedDate.ToString("yyyy-MM-dd");
         if (matchCache.ContainsKey(dateKey))
         {
             Console.WriteLine($"Utilisation du cache pour la date {dateKey}");
@@ -156,8 +159,6 @@ else
         else
         {
             Console.WriteLine($"Chargement des matchs pour {selectedDate:yyyy-MM-dd}...");
-
-            //excuter sans bloquer l'interface
             matches = await FootService.GetMatchesByDateAsync(selectedDate);
             if (matches == null || matches.Count == 0)
             {
@@ -169,10 +170,8 @@ else
                 matchCache[dateKey] = matches;
             }
         }
-
-        ApplyFilters(); // Appliquer les filtres après récupération des données
+        ApplyFilters();
         StateHasChanged();
-
     }
 
     private async Task LoadTodayMatches()
@@ -187,7 +186,7 @@ else
             Console.WriteLine("⚠ Aucun match trouvé pour cette date !");
             matches = new List<footApi.Services.Match>();
         }
-        ApplyFilters(); // Appliquer les filtres après récupération des données
+        ApplyFilters();
         StateHasChanged();
         showTodayMatches = true;
         showLiveMatches = false;
@@ -203,11 +202,11 @@ else
             Console.WriteLine("⚠ Aucun match trouvé pour cette date !");
             matches = new List<footApi.Services.Match>();
         }
-        ApplyFilters(); // Appliquer les filtres après récupération des données
+        ApplyFilters();
         StateHasChanged();
         showTodayMatches = false;
         showLiveMatches = true;
-        StateHasChanged(); 
+        StateHasChanged();
     }
 
     private void ShowAllMatches()
@@ -235,17 +234,17 @@ else
     {
         if (matches == null || matches.Count == 0)
         {
-            filteredMatches = new List<footApi.Services.Match>(); // Évite une erreur si `matches` est vide
+            filteredMatches = new List<footApi.Services.Match>();
             StateHasChanged();
             return;
         }
 
-        List<footApi.Services.Match> filtered = new(matches); // Copie des matchs pour éviter de modifier `matches`
+        List<footApi.Services.Match> filtered = new(matches);
 
         if (selectedCategory == "Female")
         {
-            filtered = filtered.Where(m => 
-                m.League.Name.ToLower().Contains("women") || 
+            filtered = filtered.Where(m =>
+                m.League.Name.ToLower().Contains("women") ||
                 m.League.Name.ToLower().Contains("feminine") ||
                 m.League.Name.ToLower().Contains("w.") ||
                 m.League.Name.ToLower().Contains("ladies") ||
@@ -263,10 +262,7 @@ else
             ).ToList();
         }
 
-        filteredMatches = filtered; // Mettre à jour la liste affichée
+        filteredMatches = filtered;
         StateHasChanged();
     }
-
-    
-
 }
