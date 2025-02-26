@@ -168,7 +168,7 @@ namespace footApi.Services
             string[] europe =
                 { "England", "Spain", "Italy", "Germany", "France", "Portugal", "Netherlands", "Belgium" };
             // 2 ligue americaine
-            string[] americas = { "USA", "Mexico", "Brazil", "Argentina", "Colombia", "Chile" };
+            string[] americas = { "USA", "Mexico", "Brazil", "Argentina", "Colombia" };
 
             if (europe.Contains(country)) return 1;
             if (americas.Contains(country)) return 2;
@@ -185,7 +185,7 @@ namespace footApi.Services
             try
             {
                 var response = await _httpClient.GetFromJsonAsync<ApiResponse>($"fixtures?date={todayDate}");
-                Console.WriteLine($"📢 Appel API : fixtures?date={todayDate}");
+                Console.WriteLine($"Appel API : fixtures?date={todayDate}");
 
                 if (response == null || response.Response == null)
                 {
@@ -193,7 +193,7 @@ namespace footApi.Services
                     return new List<Match>();
                 }
 
-                Console.WriteLine($"✅ {response.Response.Count} matchs trouvés !");
+                Console.WriteLine($" {response.Response.Count} matchs trouvés !");
                 //appliquer l'heure 
                 foreach (var match in response.Response)
                 {
