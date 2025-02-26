@@ -1,0 +1,213 @@
+﻿/* Style global */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #121212; /* Fond sombre */
+    color: #ffffff;            /* Texte clair */
+    font-family: 'Arial', sans-serif;
+}
+
+
+
+/* Colonne gauche pour les ligues */
+
+
+ h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+/* Colonne de droite (contenu principal) */
+.content {
+    flex: 1; /* Prend tout l'espace restant */
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Barre de navigation (boutons Today, Live, etc.) */
+.date-navigation, .filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+/* Boutons */
+.date-navigation button,
+.filters button {
+    background-color: #2c2c2c;
+    border: none;
+    color: #ffffff;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.date-navigation button:hover,
+.filters button:hover {
+    background-color: #3a3a3a;
+}
+
+.date-navigation button:hover,
+.filters button:hover {
+    background-color: #3a3a3a;
+}
+
+.btn-success {
+    background-color: #5cb85c !important;
+}
+
+.btn-dark {
+    background-color: #343a40 !important;
+}
+
+.btn-outline-dark {
+    background-color: transparent;
+    border: 1px solid #343a40;
+}
+
+h1 {
+    margin: 0 0 15px 0;
+}
+
+/* Titre de ligue */
+h2 {
+    font-size: 1.2rem;
+    margin: 20px 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Table des matchs */
+table.table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #1f1f1f;
+}
+
+table.table thead tr {
+    background-color: #2c2c2c;
+}
+
+table.table th,
+table.table td {
+    padding: 8px;
+    border-bottom: 1px solid #2c2c2c;
+}
+
+table.table tbody tr:hover {
+    background-color: #2c2c2c;
+}
+/* Pour aligner le "Heure", "Match", "Score" à gauche */
+table.table th {
+    text-align: left;
+}
+
+/* Boutons actifs (primary, danger, etc.) */
+.btn-primary {
+    background-color: #4c8bf5 !important;
+}
+
+.btn-danger {
+    background-color: #d9534f !important;
+}
+
+.league-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.league-list li {
+    margin-bottom: 10px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.league-list li:hover {
+    background-color: #2c2c2c;
+}
+
+/* Colonne principale pour le contenu */
+.content {
+    flex: 1;  /* Prend tout l'espace restant */
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Titres de section */
+.section-title {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+}
+
+/* Style des matchs */
+.match-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.match-item {
+    background-color: #1f1f1f;
+    padding: 10px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.match-item:hover {
+    background-color: #2c2c2c;
+}
+
+
+.match-teams {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Petits logos */
+.match-teams img {
+    width: 20px;
+    height: 20px;
+}
+
+.match-info {
+    font-size: 0.9rem;
+    color: #cccccc;
+}
+
+/* Boutons type "Today", "Live", etc. */
+.button-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.button-bar button {
+    background-color: #2c2c2c;
+    border: none;
+    color: #ffffff;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.button-bar button:hover {
+    background-color: #3a3a3a;
+}
+
+.button-bar .btn-primary {
+    background-color: #4c8bf5; /* Couleur bleue pour un bouton actif */
+}
+
+.button-bar .btn-danger {
+    background-color: #d9534f; /* Couleur rouge pour un bouton actif */
+}
