@@ -66,35 +66,10 @@
                <table class="table">
     <thead>
         <tr>
-            <th>Heure</th>
-            <th>Match</th>
-            <th>
-                Score
-                @if (selectedCategory == "Favorites")
-                {
-                    <span style="cursor:pointer; color:blue; font-weight:bold; margin-left:10px;"
-                          @onclick="() => RemoveFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
-                            ★
-                        </span>
-                }
-                else
-                {
-                    @if (IsLeagueFavorite(leagueGroup.Key.Name, leagueGroup.Key.Country))
-                    {
-                        <span style="cursor:pointer; color:red; font-weight:bold; margin-left:10px;"
-                              @onclick="() => RemoveFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
-                                ★
-                            </span>
-                    }
-                    else
-                    {
-                        <span style="cursor:pointer; color:gray; font-weight:bold; margin-left:10px;"
-                              @onclick="() => AddFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
-                                ★
-                            </span>
-                    }
-                }
-            </th>
+            <th style="width: 10%;">Heure</th>
+            <th style="width: 60%;">Match</th>
+            <th style="width: 10%; text-align: center;">Score</th>
+            <th style="width: 20%; text-align: center">Favorites</th>
         </tr>
     </thead>
     <tbody>
@@ -135,10 +110,36 @@
 
                 <!-- Colonne Score -->
                 <td>
-                   <span style="@( (match.Fixture.Status.Short == "1H" || match.Fixture.Status.Short == "2H") ? "color: green; font-weight: bold;background-color: #ccffcc; padding: 4px;" : "" )">
+                    <span style="@( (match.Fixture.Status.Short == "1H" || match.Fixture.Status.Short == "2H") ? "color: green; font-weight: bold;background-color: #ccffcc; padding: 4px;" : "" )">
                        
-                       @(match.Goals.Home ?? 0) - @(match.Goals.Away ?? 0)
-    </span>
+                        @(match.Goals.Home ?? 0) - @(match.Goals.Away ?? 0)
+                    </span>
+                </td>
+                <td style="text-align: center;">
+                    @if (selectedCategory == "Favorites")
+                    {
+                        <span style="cursor:pointer; color:blue; font-weight:bold;"
+                              @onclick="() => RemoveFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
+                            ★
+                        </span>
+                    }
+                    else
+                    {
+                        @if (IsLeagueFavorite(leagueGroup.Key.Name, leagueGroup.Key.Country))
+                        {
+                            <span style="cursor:pointer; color:red; font-weight:bold;"
+                                  @onclick="() => RemoveFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
+                                ★
+                            </span>
+                        }
+                        else
+                        {
+                            <span style="cursor:pointer; color:gray; font-weight:bold;"
+                                  @onclick="() => AddFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
+                                ★
+                            </span>
+                        }
+                    }
                 </td>
             </tr>
         }
@@ -207,12 +208,14 @@
         {
             favoriteLeagues.Add(key);
             Console.WriteLine($"Ligue{key} ajouté en favoris");
+            ApplyFilters();
+            StateHasChanged();
         }
     }
 
     private void RemoveFavoriteLeague(string leagueName, string country)
     {
-        string key = $"{leagueName}({country})";
+        string key = $"{leagueName} ({country})";
         if (favoriteLeagues.Contains(key))
         {
             favoriteLeagues.Remove(key);
