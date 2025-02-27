@@ -116,13 +116,13 @@ namespace footApi.Services
             TimeZoneInfo belgiumTimeZone;
             try
             {
-                belgiumTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"); // Windows"
+                belgiumTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
             }
             catch (TimeZoneNotFoundException)
             {
                 try
                 {
-                    belgiumTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Brussels"); // Linux/MacOS
+                    belgiumTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Brussels"); 
                 }
                 catch (TimeZoneNotFoundException)
                 {
@@ -205,6 +205,7 @@ namespace footApi.Services
                 //trier les matchs par priorité
                 var sortedMatches = response.Response
                     .OrderBy(m => GetLeaguePriority(m.League.Country)) // tri priorité de ligue
+                    .ThenBy(m => m.League.Country)
                     .ThenBy(m => m.League.Name) // trie par nom ligue
                     .ToList();
 
@@ -240,6 +241,7 @@ namespace footApi.Services
 
                 var sortedMatches = response.Response
                     .OrderBy(m => GetLeaguePriority(m.League.Country))
+                    .ThenBy(m => m.League.Country)
                     .ThenBy(m => m.League.Name)
                     .ToList();
                 return sortedMatches;
