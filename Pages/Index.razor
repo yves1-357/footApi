@@ -37,6 +37,10 @@
             <button @onclick="ShowMaleMatches" class="@("btn " + (selectedCategory == "Male" ? "btn-primary" : ""))">
                 Hommes
             </button>
+            <button @onclick="ShowFavorites" class="@("btn " + (selectedCategory == "Favorites" ? "btn-warning" : ""))">
+                Favoris
+            </button>
+            
         </div>
 
         @if (matches == null || matches.Count == 0)
@@ -64,7 +68,33 @@
         <tr>
             <th>Heure</th>
             <th>Match</th>
-            <th>Score</th>
+            <th>
+                Score
+                @if (selectedCategory == "Favorites")
+                {
+                    <span style="cursor:pointer; color:blue; font-weight:bold; margin-left:10px;"
+                          @onclick="() => RemoveFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
+                            ★
+                        </span>
+                }
+                else
+                {
+                    @if (IsLeagueFavorite(leagueGroup.Key.Name, leagueGroup.Key.Country))
+                    {
+                        <span style="cursor:pointer; color:red; font-weight:bold; margin-left:10px;"
+                              @onclick="() => RemoveFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
+                                ★
+                            </span>
+                    }
+                    else
+                    {
+                        <span style="cursor:pointer; color:gray; font-weight:bold; margin-left:10px;"
+                              @onclick="() => AddFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
+                                ★
+                            </span>
+                    }
+                }
+            </th>
         </tr>
     </thead>
     <tbody>
@@ -129,6 +159,7 @@
     private DateTime selectedDate = DateTime.UtcNow;
     private string currentDateText = "";
     private string selectedCategory = "All";
+    private List<string> favoriteLeagues = new();
    
 
     protected override async Task OnInitializedAsync()
@@ -168,6 +199,35 @@
             StateHasChanged();
         }
     }
+
+    private void AddFavoriteLeague(string leagueName, string country)
+    {
+        string key = $"{leagueName} ({country})";
+        if (!favoriteLeagues.Contains(key))
+        {
+            favoriteLeagues.Add(key);
+            Console.WriteLine($"Ligue{key} ajouté en favoris");
+        }
+    }
+
+    private void RemoveFavoriteLeague(string leagueName, string country)
+    {
+        string key = $"{leagueName}({country})";
+        if (favoriteLeagues.Contains(key))
+        {
+            favoriteLeagues.Remove(key);
+            Console.WriteLine($"ligue {key} retirée des favoris");
+            ApplyFilters();
+            StateHasChanged();
+        }
+    }
+
+    private bool IsLeagueFavorite(string leagueName, string country)
+    {
+        string key = $"{leagueName} ({country})";
+        return favoriteLeagues.Contains(key);
+    }
+    
 
     private void UpdateDateText()
     {
@@ -263,6 +323,13 @@
         StateHasChanged();
     }
 
+    private void ShowFavorites()
+    {
+        selectedCategory = "Favorites";
+        ApplyFilters();
+        StateHasChanged();
+    }
+
     private void ApplyFilters()
     {
         if (matches == null || matches.Count == 0)
@@ -272,11 +339,16 @@
             return;
         }
 
-        List<footApi.Services.Match> filtered = new(matches);
-
-        if (selectedCategory == "Female")
+        List<footApi.Services.Match> temp = new(matches);
+        
+        if(selectedCategory == "Favorites")
         {
-            filtered = filtered.Where(m =>
+            temp = temp.Where(m => IsLeagueFavorite(m.League.Name, m.League.Country)).ToList();
+        }
+
+        else if (selectedCategory == "Female")
+        {
+            temp = temp .Where(m =>
                 m.League.Name.ToLower().Contains("women") ||
                 m.League.Name.ToLower().Contains("feminine") ||
                 m.League.Name.ToLower().Contains("w.") ||
@@ -286,7 +358,7 @@
         }
         else if (selectedCategory == "Male")
         {
-            filtered = filtered.Where(m =>
+            temp  = temp .Where(m =>
                 !m.League.Name.ToLower().Contains("women") &&
                 !m.League.Name.ToLower().Contains("feminine") &&
                 !m.League.Name.ToLower().Contains("w.") &&
@@ -295,7 +367,7 @@
             ).ToList();
         }
 
-        filteredMatches = filtered;
+        filteredMatches = temp;
         StateHasChanged();
     }
 }
