@@ -100,7 +100,7 @@ namespace footApi.Services
                 return new List<Match>();
             }
         }
-        
+
         private string ConvertToBelgiumTime(string utcTime, Status status)
         {
             DateTime utcDateTime;
@@ -122,7 +122,7 @@ namespace footApi.Services
             {
                 try
                 {
-                    belgiumTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Brussels"); 
+                    belgiumTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Brussels");
                 }
                 catch (TimeZoneNotFoundException)
                 {
