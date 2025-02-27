@@ -85,6 +85,7 @@ table.table {
     width: 100%;
     border-collapse: collapse;
     background-color: #1f1f1f;
+    table-layout: fixed;
 }
 
 table.table thead tr {
@@ -95,6 +96,7 @@ table.table th,
 table.table td {
     padding: 8px;
     border-bottom: 1px solid #2c2c2c;
+    vertical-align: middle;
 }
 
 table.table tbody tr:hover {
