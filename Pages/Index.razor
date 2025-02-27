@@ -9,19 +9,19 @@
 
         <!-- Navigation des jours -->
         <div class="date-navigation">
-            <button @onclick="PreviousDay" class="btn btn-success"> ◀ </button>
+            <button @onclick="PreviousDay" class="btn btn-success" style="background-color: green"> ◀ </button>
 
             <span class="selected-date" style="font-size: 18px; font-weight:bold;">
                 @currentDateText
             </span>
 
-            <button @onclick="NextDay" class="btn btn-success"> ▶ </button>
+            <button @onclick="NextDay" class="btn btn-success" style="background-color: green"> ▶ </button>
 
             <button @onclick="LoadTodayMatches" class="btn @(showTodayMatches ? "btn-primary" : "")">
                 Today
             </button>
 
-            <button @onclick="LoadLiveMatches" class="btn @(showLiveMatches ? "btn-danger" : "")">
+            <button @onclick="LoadLiveMatches" class="btn @(showLiveMatches ? "btn-danger" : "")" style="background-color: darkred">
                 Live
             </button>
         </div>
@@ -127,7 +127,7 @@
     private bool showLiveMatches = false;
     private bool showTodayMatches = true;
     private DateTime selectedDate = DateTime.UtcNow;
-    private string currentDateText = "Today";
+    private string currentDateText = "";
     private string selectedCategory = "All";
    
 
@@ -195,7 +195,7 @@
             matches = await FootService.GetMatchesByDateAsync(selectedDate);
             if (matches == null || matches.Count == 0)
             {
-                Console.WriteLine("⚠ Aucun match trouvé pour cette date !");
+                Console.WriteLine("Aucun match trouvé pour cette date !");
                 matches = new List<footApi.Services.Match>();
             }
             else
@@ -216,7 +216,7 @@
         matches = await FootService.GetTodayMatchesAsync();
         if (matches == null || matches.Count == 0)
         {
-            Console.WriteLine("⚠ Aucun match trouvé pour cette date !");
+            Console.WriteLine("Aucun match trouvé pour cette date !");
             matches = new List<footApi.Services.Match>();
         }
         ApplyFilters();
@@ -232,7 +232,7 @@
         matches = await FootService.GetLiveMatchesAsync();
         if (matches == null || matches.Count == 0)
         {
-            Console.WriteLine("⚠ Aucun match trouvé pour cette date !");
+            Console.WriteLine(" Aucun match trouvé pour cette date !");
             matches = new List<footApi.Services.Match>();
         }
         ApplyFilters();
