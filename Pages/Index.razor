@@ -4,13 +4,19 @@
 @using System.Globalization
 
 <!-- CONTENT (colonne droite) -->
-    <div class="content">
+<div class="main-container">
+    <div class="search-bar-container">
         <h1 style="color: darkgrey; font-weight: bold;">Le Onze</h1>
-        < type="text" placeholder="Rechercher équipe ou compétition"
-               style="border-radius: 4px; padding: 5px;
+        <div class="search-box">
+            <input class="search-input"
+                   type="text" 
+               placeholder="Rechercher équipe ou compétition"
+               style="border-radius: 4px; padding: 5px;"
                @bind="searchQuery"
         @bind:event="oninput" />
-        <button @onclick="SearchMatches">Rechercher</button>
+            <button @onclick="SearchMatches">Rechercher</button>
+        </div>
+    </div>
 
         <!-- Navigation des jours -->
         <div class="date-navigation">
@@ -48,7 +54,11 @@
             
         </div>
 
-        @if (matches == null || matches.Count == 0)
+        @if (!string.IsNullOrEmpty(noMatchMessage))
+        {
+            <p style="color:red;">@noMatchMessage</p>
+        }
+        else if (filteredMatches == null || filteredMatches.Count == 0)
         {
             <p>Chargement des matchs...</p>
         }
@@ -63,99 +73,99 @@
                     }
                     else
                     {
-                        <img src="images/default-league.png" width="30" />
+                        <img src="images/default-league.png" width="30"/>
                     }
                     @leagueGroup.Key.Name (@leagueGroup.Key.Country)
                 </h2>
 
-               <table class="table">
-    <thead>
-        <tr>
-            <th style="width: 10%;">Heure</th>
-            <th style="width: 60%;">Match</th>
-            <th style="width: 10%; text-align: center;">Score</th>
-            <th style="width: 20%; text-align: center">Favorites</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var match in leagueGroup)
-        {
-            <tr>
-                <td>
-                    @if (match.Fixture.Date == "Full-Time")
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th style="width: 10%;">Heure</th>
+                        <th style="width: 60%;">Match</th>
+                        <th style="width: 10%; text-align: center;">Score</th>
+                        <th style="width: 20%; text-align: center">Favorites</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var match in leagueGroup)
                     {
-                        <!-- Full-time en rouge, gras -->
-                        <span style="color: red; font-weight: bold; background-color: #ffcccc;">Full-Time</span>
-                    }
-                    else if (match.Fixture.Date == "Half-Time")
-                    {
-                        <!-- Half-time en bleu, gras -->
-                        <span style="color: blue; font-weight: bold;background-color: #ccccff; padding: 4px;">Half-Time</span>
-                    }
-                    else if (match.Fixture.Date.EndsWith("'"))
-                    {
-                        <!-- minute en direct en vert, gras -->
-                        <span style="color: green; font-weight: bold;background-color: #ccffcc; padding: 4px;">@match.Fixture.Date</span>
-                    }
-                    else
-                    {
-                        <!-- Heure "normale" -->
-                        @match.Fixture.Date
-                    }
-                </td>
+                        <tr>
+                            <td>
+                                @if (match.Fixture.Date == "Full-Time")
+                                {
+                                    <!-- Full-time en rouge, gras -->
+                                    <span style="color: red; font-weight: bold; background-color: #ffcccc;">Full-Time</span>
+                                }
+                                else if (match.Fixture.Date == "Half-Time")
+                                {
+                                    <!-- Half-time en bleu, gras -->
+                                    <span style="color: blue; font-weight: bold;background-color: #ccccff; padding: 4px;">Half-Time</span>
+                                }
+                                else if (match.Fixture.Date.EndsWith("'"))
+                                {
+                                    <!-- minute en direct en vert, gras -->
+                                    <span style="color: green; font-weight: bold;background-color: #ccffcc; padding: 4px;">@match.Fixture.Date</span>
+                                }
+                                else
+                                {
+                                    <!-- Heure "normale" -->
+                                    @match.Fixture.Date
+                                }
+                            </td>
 
-                <!-- Colonne Match -->
-                <td>
-                    <img src="@match.Teams.Home.Logo" width="20" />
-                    @match.Teams.Home.Name
-                    vs
-                    @match.Teams.Away.Name
-                    <img src="@match.Teams.Away.Logo" width="20" />
-                </td>
+                            <!-- Colonne Match -->
+                            <td>
+                                <img src="@match.Teams.Home.Logo" width="20"/>
+                                @match.Teams.Home.Name
+                                vs
+                                @match.Teams.Away.Name
+                                <img src="@match.Teams.Away.Logo" width="20"/>
+                            </td>
 
-                <!-- Colonne Score -->
-                <td>
-                    <span style="@( (match.Fixture.Status.Short == "1H" || match.Fixture.Status.Short == "2H") ? "color: green; font-weight: bold;background-color: #ccffcc; padding: 4px;" : "" )">
-                       
-                        @(match.Goals.Home ?? 0) - @(match.Goals.Away ?? 0)
-                    </span>
-                </td>
-                <td style="text-align: center;">
-                    @if (selectedCategory == "Favorites")
-                    {
-                        <span style="cursor:pointer; color:blue; font-weight:bold;"
-                              @onclick="() => RemoveFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
-                            ★
-                        </span>
+                            <!-- Colonne Score -->
+                            <td>
+                                <span style="@((match.Fixture.Status.Short == "1H" || match.Fixture.Status.Short == "2H") ? "color: green; font-weight: bold;background-color: #ccffcc; padding: 4px;" : "")">
+
+                                    @(match.Goals.Home ?? 0) - @(match.Goals.Away ?? 0)
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                @if (selectedCategory == "Favorites")
+                                {
+                                    <span style="cursor:pointer; color:blue; font-weight:bold;"
+                                          @onclick="() => RemoveFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
+                                        ★
+                                    </span>
+                                }
+                                else
+                                {
+                                    @if (IsLeagueFavorite(leagueGroup.Key.Name, leagueGroup.Key.Country))
+                                    {
+                                        <span style="cursor:pointer; color:red; font-weight:bold;"
+                                              @onclick="() => RemoveFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
+                                            ★
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span style="cursor:pointer; color:gray; font-weight:bold;"
+                                              @onclick="() => AddFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
+                                            ★
+                                        </span>
+                                    }
+                                }
+                            </td>
+                        </tr>
                     }
-                    else
-                    {
-                        @if (IsLeagueFavorite(leagueGroup.Key.Name, leagueGroup.Key.Country))
-                        {
-                            <span style="cursor:pointer; color:red; font-weight:bold;"
-                                  @onclick="() => RemoveFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
-                                ★
-                            </span>
-                        }
-                        else
-                        {
-                            <span style="cursor:pointer; color:gray; font-weight:bold;"
-                                  @onclick="() => AddFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
-                                ★
-                            </span>
-                        }
-                    }
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+                    </tbody>
+                </table>
 
             }
         }
-    </div>
+</div>
 
-@code {
+        @code {
     // cache qui stocke les matchs
     private Dictionary<string, List<footApi.Services.Match>> matchCache = new();
     private List<footApi.Services.Match> matches = new();
@@ -167,6 +177,8 @@
     private string selectedCategory = "All";
     private List<string> favoriteLeagues = new();
     private string searchQuery = "";
+    private string noMatchMessage = null;
+
     
    
 
@@ -189,8 +201,47 @@
     // Methode pour la recherche
     private void SearchMatches()
     {
+        noMatchMessage = null;
+        if (string.IsNullOrWhiteSpace(searchQuery)) 
+        {
+            // si rien saisi,on recharge les match du jour
+            ApplyFilters();
+            return;
+        }
         
+        //recherche si correspond a une equipe
+
+        var teamFiltered = matches.Where(m =>
+            m.Teams.Home.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)
+            || m.Teams.Away.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)
+        ).ToList();
+
+        if (teamFiltered.Count > 0)
+        {
+            filteredMatches = teamFiltered;
+            StateHasChanged();
+            return;
+        }
+        
+        //recherche pour une ligue 
+        var leagueFiltered = matches.Where(m =>
+            m.League.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)
+        ).ToList();
+
+        if (leagueFiltered.Count > 0)
+        {
+            filteredMatches = leagueFiltered;
+            StateHasChanged();
+            return;
+        }
+        
+        //si pas de match
+        filteredMatches = new List<Match>();
+        noMatchMessage = "pas de match disponible";
+        StateHasChanged();
     }
+    
+
 
     private async Task PreviousDay()
     {
