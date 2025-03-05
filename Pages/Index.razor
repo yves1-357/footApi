@@ -6,6 +6,11 @@
 <!-- CONTENT (colonne droite) -->
     <div class="content">
         <h1 style="color: darkgrey; font-weight: bold;">Le Onze</h1>
+        < type="text" placeholder="Rechercher équipe ou compétition"
+               style="border-radius: 4px; padding: 5px;
+               @bind="searchQuery"
+        @bind:event="oninput" />
+        <button @onclick="SearchMatches">Rechercher</button>
 
         <!-- Navigation des jours -->
         <div class="date-navigation">
@@ -161,6 +166,8 @@
     private string currentDateText = "";
     private string selectedCategory = "All";
     private List<string> favoriteLeagues = new();
+    private string searchQuery = "";
+    
    
 
     protected override async Task OnInitializedAsync()
@@ -177,6 +184,12 @@
             Console.WriteLine("Timer: Actualisation des matchs d'aujourd'hui");
             await LoadTodayMatches();
         }
+    }
+
+    // Methode pour la recherche
+    private void SearchMatches()
+    {
+        
     }
 
     private async Task PreviousDay()
