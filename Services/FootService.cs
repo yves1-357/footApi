@@ -101,7 +101,7 @@ namespace footApi.Services
             }
         }
 
-        private string ConvertToBelgiumTime(string utcTime, Status status)
+        public string ConvertToBelgiumTime(string utcTime, Status status)
         {
             DateTime utcDateTime;
             if (!DateTime.TryParse(utcTime, null, System.Globalization.DateTimeStyles.AdjustToUniversal,
