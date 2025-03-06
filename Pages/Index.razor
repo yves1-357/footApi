@@ -4,170 +4,186 @@
 @using System.Globalization
 
 <!-- CONTENT (colonne droite) -->
+<div class="@(IsDarkMode ? "dark-theme" : "light-theme")" style="min-height: 100vh;">
 <div class="main-container">
     <div class="search-bar-container">
         <h1 style="color: darkgrey; font-weight: bold;">Le Onze</h1>
         <div class="search-box">
             <input class="search-input"
                    type="text" 
-               placeholder="Rechercher équipe ou compétition"
-               style="border-radius: 4px; padding: 5px;"
-               @bind="searchQuery"
-        @bind:event="oninput" />
+                   placeholder="Rechercher des équipes ou des compétitions"
+                   style="border-radius: 4px; padding: 5px;"
+                   @bind="searchQuery"
+                   @bind:event="oninput" />
             <button @onclick="SearchMatches">Rechercher</button>
+
+            <div style="margin-left: 40px;">
+                <img src="@ThemeIcon" alt="Mode"
+                     style="width: 30px; height:30px; cursor:pointer;"
+                     @onclick="ToggleTheme" />
+            </div>
         </div>
     </div>
 
-        <!-- Navigation des jours -->
+    <!-- Navigation des jours -->
     <div class="date-navigation">
         <div style="display: flex; align-items: center; gap: 20px;">
-        <button @onclick="PreviousDay" class="btn btn-success" style="background-color: green"> ◀ </button>
+            <button @onclick="PreviousDay" class="btn btn-success" style="background-color: green"> ◀ </button>
 
-        <span class="selected-date" style="font-size: 18px; font-weight:bold;">
-            @currentDateText
-        </span>
+            <span class="selected-date" style="font-size: 18px; font-weight:bold;">
+                @currentDateText
+            </span>
 
-        <button @onclick="NextDay" class="btn btn-success" style="background-color: green"> ▶ </button>
+            <button @onclick="NextDay" class="btn btn-success" style="background-color: green"> ▶ </button>
 
-        <button @onclick="LoadTodayMatches" class="btn @(showTodayMatches ? "btn-primary" : "")">
-            Today
-        </button>
+            <button @onclick="LoadTodayMatches" class="btn @(showTodayMatches ? "btn-primary" : "")">
+                Today
+            </button>
 
-        <button @onclick="LoadLiveMatches" class="btn @(showLiveMatches ? "btn-danger" : "")" style="background-color: darkred">
-            Live
-        </button>
+            <button @onclick="LoadLiveMatches" class="btn @(showLiveMatches ? "btn-danger" : "")" style="background-color: darkred">
+                Live
+            </button>
         </div>
     </div>
 
-        <!-- Filtres Homme/Femme -->
-        <div class="filters">
-            <button @onclick="ShowAllMatches" class="@("btn " + (selectedCategory == "All" ? "btn-dark": ""))">
-                Tout 
-            </button>
-            <button @onclick="ShowFemaleMatches" class="@("btn " + (selectedCategory == "Female" ? "btn-danger" : ""))">
-                Femmes
-            </button>
-            <button @onclick="ShowMaleMatches" class="@("btn " + (selectedCategory == "Male" ? "btn-primary" : ""))">
-                Hommes
-            </button>
-            <button @onclick="ShowFavorites" class="@("btn " + (selectedCategory == "Favorites" ? "btn-warning" : ""))">
-                Favoris
-            </button>
+    <!-- Filtres Homme/Femme -->
+    <div class="filters">
+        <button @onclick="ShowAllMatches" class="@("btn " + (selectedCategory == "All" ? "btn-dark": ""))">
+            Tout 
+        </button>
+        <button @onclick="ShowFemaleMatches" class="@("btn " + (selectedCategory == "Female" ? "btn-danger" : ""))">
+            Femmes
+        </button>
+        <button @onclick="ShowMaleMatches" class="@("btn " + (selectedCategory == "Male" ? "btn-primary" : ""))">
+            Hommes
+        </button>
+        <button @onclick="ShowFavorites" class="@("btn " + (selectedCategory == "Favorites" ? "btn-warning" : ""))">
+            Favoris
+        </button>
             
-        </div>
+    </div>
 
-        @if (!string.IsNullOrEmpty(noMatchMessage))
+    @if (!string.IsNullOrEmpty(noMatchMessage))
+    {
+        <p style="color:red;">@noMatchMessage</p>
+    }
+    else if (filteredMatches == null || filteredMatches.Count == 0)
+    {
+        <p>Chargement des matchs...</p>
+    }
+    else
+    {
+        @foreach (var leagueGroup in filteredMatches.GroupBy(m => new { m.League.Name, m.League.Country, m.League.Logo }))
         {
-            <p style="color:red;">@noMatchMessage</p>
-        }
-        else if (filteredMatches == null || filteredMatches.Count == 0)
-        {
-            <p>Chargement des matchs...</p>
-        }
-        else
-        {
-            @foreach (var leagueGroup in filteredMatches.GroupBy(m => new { m.League.Name, m.League.Country, m.League.Logo }))
-            {
-                <h2>
-                    @if (!string.IsNullOrEmpty(leagueGroup.Key.Logo))
-                    {
-                        <img src="@leagueGroup.Key.Logo" width="30"/>
-                    }
-                    else
-                    {
-                        <img src="images/default-league.png" width="30"/>
-                    }
-                    @leagueGroup.Key.Name (@leagueGroup.Key.Country)
-                </h2>
+            <h2>
+                @if (!string.IsNullOrEmpty(leagueGroup.Key.Logo))
+                {
+                    <img src="@leagueGroup.Key.Logo" width="30"/>
+                }
+                else
+                {
+                    <img src="images/default-league.png" width="30"/>
+                }
+                @leagueGroup.Key.Name (@leagueGroup.Key.Country)
+            </h2>
 
-                <table class="table">
-                    <thead>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th style="width: 10%;">Heure</th>
+                    <th style="width: 60%;">Match</th>
+                    <th style="width: 10%; text-align: center;">Score</th>
+                    <th style="width: 20%; text-align: center">Favorites</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var match in leagueGroup)
+                {
                     <tr>
-                        <th style="width: 10%;">Heure</th>
-                        <th style="width: 60%;">Match</th>
-                        <th style="width: 10%; text-align: center;">Score</th>
-                        <th style="width: 20%; text-align: center">Favorites</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach (var match in leagueGroup)
-                    {
-                        <tr>
-                            <td>
-                                @if (match.Fixture.Date == "Full-Time")
-                                {
-                                    <!-- Full-time en rouge, gras -->
-                                    <span style="color: red; font-weight: bold; background-color: #ffcccc;">Full-Time</span>
-                                }
-                                else if (match.Fixture.Date == "Half-Time")
-                                {
-                                    <!-- Half-time en bleu, gras -->
-                                    <span style="color: blue; font-weight: bold;background-color: #ccccff; padding: 4px;">Half-Time</span>
-                                }
-                                else if (match.Fixture.Date.EndsWith("'"))
-                                {
-                                    <!-- minute en direct en vert, gras -->
-                                    <span style="color: green; font-weight: bold;background-color: #ccffcc; padding: 4px;">@match.Fixture.Date</span>
-                                }
-                                else
-                                {
-                                    <!-- Heure "normale" -->
-                                    @match.Fixture.Date
-                                }
-                            </td>
+                        <td>
+                            @if (match.Fixture.Date == "Full-Time")
+                            {
+                                <!-- Full-time en rouge, gras -->
+                                <span style="color: red; font-weight: bold; background-color: #ffcccc;">Full-Time</span>
+                            }
+                            else if (match.Fixture.Date == "Half-Time")
+                            {
+                                <!-- Half-time en bleu, gras -->
+                                <span style="color: blue; font-weight: bold;background-color: #ccccff; padding: 4px;">Half-Time</span>
+                            }
+                            else if (match.Fixture.Date.EndsWith("'"))
+                            {
+                                <!-- minute en direct en vert, gras -->
+                                <span style="color: green; font-weight: bold;background-color: #ccffcc; padding: 4px;">@match.Fixture.Date</span>
+                            }
+                            else
+                            {
+                                <!-- Heure "normale" -->
+                                @match.Fixture.Date
+                            }
+                        </td>
 
-                            <!-- Colonne Match -->
-                            <td>
-                                <img src="@match.Teams.Home.Logo" width="20"/>
-                                @match.Teams.Home.Name
-                                vs
-                                @match.Teams.Away.Name
-                                <img src="@match.Teams.Away.Logo" width="20"/>
-                            </td>
+                        <!-- Colonne Match -->
+                        <td>
+                            <img src="@match.Teams.Home.Logo" width="20"/>
+                            @match.Teams.Home.Name
+                            vs
+                            @match.Teams.Away.Name
+                            <img src="@match.Teams.Away.Logo" width="20"/>
+                        </td>
 
-                            <!-- Colonne Score -->
-                            <td>
-                                <span style="@((match.Fixture.Status.Short == "1H" || match.Fixture.Status.Short == "2H") ? "color: green; font-weight: bold;background-color: #ccffcc; padding: 4px;" : "")">
+                        <!-- Colonne Score -->
+                        <td>
+                            <span style="@((match.Fixture.Status.Short == "1H" || match.Fixture.Status.Short == "2H") ? "color: green; font-weight: bold;background-color: #ccffcc; padding: 4px;" : "")">
 
-                                    @(match.Goals.Home ?? 0) - @(match.Goals.Away ?? 0)
+                                @(match.Goals.Home ?? 0) - @(match.Goals.Away ?? 0)
+                            </span>
+                        </td>
+                        <td style="text-align: center;">
+                            @if (selectedCategory == "Favorites")
+                            {
+                                <span style="cursor:pointer; color:blue; font-weight:bold;"
+                                      @onclick="() => RemoveFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
+                                    ★
                                 </span>
-                            </td>
-                            <td style="text-align: center;">
-                                @if (selectedCategory == "Favorites")
+                            }
+                            else
+                            {
+                                @if (IsLeagueFavorite(leagueGroup.Key.Name, leagueGroup.Key.Country))
                                 {
-                                    <span style="cursor:pointer; color:blue; font-weight:bold;"
+                                    <span style="cursor:pointer; color:red; font-weight:bold;"
                                           @onclick="() => RemoveFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
                                         ★
                                     </span>
                                 }
                                 else
                                 {
-                                    @if (IsLeagueFavorite(leagueGroup.Key.Name, leagueGroup.Key.Country))
-                                    {
-                                        <span style="cursor:pointer; color:red; font-weight:bold;"
-                                              @onclick="() => RemoveFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
-                                            ★
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span style="cursor:pointer; color:gray; font-weight:bold;"
-                                              @onclick="() => AddFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
-                                            ★
-                                        </span>
-                                    }
+                                    <span style="cursor:pointer; color:gray; font-weight:bold;"
+                                          @onclick="() => AddFavoriteLeague(leagueGroup.Key.Name, leagueGroup.Key.Country)">
+                                        ★
+                                    </span>
                                 }
-                            </td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
 
-            }
         }
+    }
+    </div>
 </div>
 
-        @code {
+@code {
+    //mode sombre ou clair
+    private bool IsDarkMode = true;
+    private string ThemeIcon => IsDarkMode ? "/images/icon-sun.png" : "/images/icon-moon.png";
+
+    private void ToggleTheme()
+    {
+        IsDarkMode = !IsDarkMode;
+    }
     // cache qui stocke les matchs
     private Dictionary<string, List<footApi.Services.Match>> matchCache = new();
     private List<footApi.Services.Match> matches = new();
