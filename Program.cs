@@ -12,7 +12,7 @@ builder.Services.AddScoped<FootService>();
 builder.Services.AddScoped(sp =>
 {
     var client = new HttpClient { BaseAddress = new Uri("https://v3.football.api-sports.io/") };
-    client.DefaultRequestHeaders.Add("x-apisports-key", "7cf47bb8ca0922e48f586e6c7bf5e1b4");
+    client.DefaultRequestHeaders.Add("x-apisports-key", "6d1f3d56ed9f6d42d0545f19dd930c6c");
     return client;
 });
 await builder.Build().RunAsync();
