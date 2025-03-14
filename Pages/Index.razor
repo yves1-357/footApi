@@ -43,6 +43,8 @@
             <button @onclick="LoadLiveMatches" class="btn @(showLiveMatches ? "btn-danger" : "")" style="background-color: darkred">
                 Live
             </button>
+            
+            <button @onclick="RefreshLiveMatches" style="margin-left:10px;">↻</button>
         </div>
     </div>
 
@@ -186,6 +188,7 @@
     }
     // cache qui stocke les matchs
     private Dictionary<string, List<footApi.Services.Match>> matchCache = new();
+    
     private List<footApi.Services.Match> matches = new();
     private List<footApi.Services.Match> filteredMatches = new();
     private bool showLiveMatches = false;
@@ -358,11 +361,20 @@
         UpdateDateText();
         Console.WriteLine("chargement matchs du jour...");
 
-        matches = await FootService.GetTodayMatchesAsync();
-        if (matches == null || matches.Count == 0)
+        const string todayKey = "today";
+        if (matchCache.ContainsKey(todayKey))
         {
-            Console.WriteLine("Aucun match trouvé pour cette date !");
-            matches = new List<footApi.Services.Match>();
+            Console.WriteLine("utilisation du cache pour 'today'");
+            matches = matchCache[todayKey];
+        }
+        else
+        {
+            Console.WriteLine("Appel api pour today..");
+            var response = await FootService.GetTodayMatchesAsync();
+            matches = response ?? new List<Match>();
+            
+            //stocke dans le cache
+            matchCache[todayKey] = matches;
         }
         ApplyFilters();
         StateHasChanged();
@@ -372,13 +384,23 @@
 
     private async Task LoadLiveMatches()
     {
+        const string liveKey = "live";
         Console.WriteLine("chargement des matchs en direct..");
-
-        matches = await FootService.GetLiveMatchesAsync();
-        if (matches == null || matches.Count == 0)
+        
+        if (matchCache.ContainsKey(liveKey))
         {
-            Console.WriteLine(" Aucun match trouvé pour cette date !");
-            matches = new List<footApi.Services.Match>();
+            Console.WriteLine(" Utilisation cache pour live.");
+            matches = matchCache[liveKey];
+        }
+        else
+        {
+            // Pas de cache, on appelle l'API
+            Console.WriteLine("Appel API pour 'live=all'...");
+            var response = await FootService.GetLiveMatchesAsync();
+            matches = response ?? new List<Match>();
+
+            // Stocke dans le cache
+            matchCache[liveKey] = matches;
         }
         ApplyFilters();
         StateHasChanged();
@@ -393,6 +415,19 @@
         ApplyFilters();
         StateHasChanged();
     }
+    private async Task RefreshLiveMatches()
+    {
+        // Force l'appel API, pas de cache
+        Console.WriteLine("Rafraîchissement forcé des matchs Live...");
+
+        var response = await FootService.GetLiveMatchesAsync();
+        matches = response ?? new List<Match>();
+        matchCache["live"] = matches; // écrase la donnée du cache
+
+        ApplyFilters();
+        StateHasChanged();
+    }
+
 
     private void ShowFemaleMatches()
     {
