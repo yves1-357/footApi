@@ -14,7 +14,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\footApi\footApi.csproj" />
+    <ProjectReference Include="..\api\footApi.csproj" />
+
+
   </ItemGroup>
   
 </Project>
