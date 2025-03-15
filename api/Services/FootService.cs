@@ -1,0 +1,258 @@
+﻿using System.Net.Http.Json;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+namespace footApi.Services
+{
+    public class Match
+    {
+        public Fixture Fixture { get; set; }
+        public League League { get; set; }
+        public Teams Teams { get; set; }
+        public Goals Goals { get; set; }
+    }
+
+    public class Fixture
+    {
+        public int Id { get; set; }
+        public string Date { get; set; }
+        public Status Status { get; set; }
+    }
+
+    public class Status
+    {
+        public string Long { get; set; } // Ex:premier mi-temps, "match fini"
+        public string Short { get; set; } // ex: "1h"
+        public int? Elapsed { get; set; } // minute en cours 
+    }
+
+    public class League
+    {
+        public string Name { get; set; }
+        public string Country { get; set; }
+        public string Logo { get; set; }
+    }
+
+    public class Teams
+    {
+        public TeamInfo Home { get; set; }
+        public TeamInfo Away { get; set; }
+    }
+
+    public class TeamInfo
+    {
+        public string Name { get; set; }
+        public string Logo { get; set; }
+    }
+
+    public class Goals
+    {
+        public int? Home { get; set; }
+        public int? Away { get; set; }
+    }
+
+    public class ApiResponse
+    {
+        public List<Match> Response { get; set; }
+    }
+
+    public class FootService
+    {
+        private readonly HttpClient _httpClient;
+
+        public FootService(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+        }
+
+        public async Task<List<Match>> GetMatchesByDateAsync(DateTime date)
+        {
+            string formattedDate = date.ToString("yyyy-MM-dd");
+            Console.WriteLine($"recuperation des match pour {formattedDate}");
+
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse>($"fixtures?date={formattedDate}");
+                if (response == null || response.Response == null)
+                {
+                    Console.WriteLine("Aucun match trouvé");
+                    return new List<Match>();
+                }
+
+                //appliquer l'heure correcte
+                foreach (var match in response.Response)
+                {
+                    match.Fixture.Date = ConvertToBelgiumTime(match.Fixture.Date, match.Fixture.Status);
+
+                }
+
+                // Trier par priorité
+                var sortedMatches = response.Response
+                    .OrderBy(m => GetLeaguePriority(m.League.Country))
+                    .ThenBy(m => m.League.Name)
+                    .ToList();
+
+                return sortedMatches;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de l'appel API : {ex.Message}");
+                return new List<Match>();
+            }
+        }
+
+        public string ConvertToBelgiumTime(string utcTime, Status status)
+        {
+            DateTime utcDateTime;
+            if (!DateTime.TryParse(utcTime, null, System.Globalization.DateTimeStyles.AdjustToUniversal,
+                    out utcDateTime))
+            {
+                return "unknown";
+            }
+
+            utcDateTime = DateTime.SpecifyKind(utcDateTime, DateTimeKind.Utc);
+
+            //convertir en heure belge
+            TimeZoneInfo belgiumTimeZone;
+            try
+            {
+                belgiumTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                try
+                {
+                    belgiumTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Brussels");
+                }
+                catch (TimeZoneNotFoundException)
+                {
+                    Console.WriteLine("impossible de trouver l'horaire");
+                    return utcDateTime.ToString("HH:mm"); // On retourne l'heure en UTC pour éviter un crash
+                }
+            }
+
+            DateTime belgiumDateTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, belgiumTimeZone);
+
+            switch (status.Short)
+            {
+                case "NS": return belgiumDateTime.ToString("HH:mm"); // affichage heure match non debuté
+                case "1H":
+                case "2H": return $"{status.Elapsed}'"; // Match en cours (affiche la minute)
+                case "HT": return "Half-Time"; // Mi-temps
+                case "FT": return "Full-Time"; // Match-terminé
+                case "AET": return "Prolongations";
+                default: return belgiumDateTime.ToString("HH:mm");
+            }
+        }
+
+        private string ConvertLiveMatchTime(Status status)
+        {
+            switch (status.Short)
+            {
+                case "1H": // Première mi-temps
+                case "2H": // Deuxième mi-temps
+                    return $"{status.Elapsed}'"; // Affiche la minute en cours
+
+                case "HT": return "Half-Time"; // Mi-temps
+                case "FT": return "Full-Time"; // Match terminé
+                case "AET": return "Prolongations"; // Prolongations
+                case "PEN": return "Pénalty"; // Séance de tirs au but
+
+                default: return "Live"; // Par défaut, indique simplement que le match est en direct
+            }
+        }
+
+        private static int GetLeaguePriority(string country)
+        {
+            //priorité pour les ligues européenes
+            string[] europe =
+                { "England", "Spain", "Italy", "Germany", "France", "Portugal", "Netherlands", "Belgium" };
+            // 2 ligue americaine
+            string[] americas = { "USA", "Mexico", "Brazil", "Argentina", "Colombia" };
+
+            if (europe.Contains(country)) return 1;
+            if (americas.Contains(country)) return 2;
+            return 3; // le reste
+        }
+
+        public async Task<List<Match>> GetTodayMatchesAsync()
+        {
+            Console.WriteLine("Blazor : Début de l'appel API pour récupérer les matchs du jour ");
+
+            // Utilisation de la date actuelle au format correct
+            string todayDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
+
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse>($"fixtures?date={todayDate}");
+                Console.WriteLine($"Appel API : fixtures?date={todayDate}");
+
+                if (response == null || response.Response == null)
+                {
+                    Console.WriteLine("aucun match trouvé !");
+                    return new List<Match>();
+                }
+
+                Console.WriteLine($" {response.Response.Count} matchs trouvés !");
+                //appliquer l'heure 
+                foreach (var match in response.Response)
+                {
+                    Console.WriteLine(
+                        $"Match : {match.Teams.Home.Name} vs {match.Teams.Away.Name} - Heure (UTC) : {match.Fixture.Date}");
+                    match.Fixture.Date = ConvertToBelgiumTime(match.Fixture.Date, match.Fixture.Status);
+                }
+
+                //trier les matchs par priorité
+                var sortedMatches = response.Response
+                    .OrderBy(m => GetLeaguePriority(m.League.Country)) // tri priorité de ligue
+                    .ThenBy(m => m.League.Country)
+                    .ThenBy(m => m.League.Name) // trie par nom ligue
+                    .ToList();
+
+                return sortedMatches;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($" Erreur lors de l'appel API : {ex.Message}");
+                return new List<Match>();
+            }
+        }
+
+        public async Task<List<Match>> GetLiveMatchesAsync()
+        {
+            Console.WriteLine("Recuperation des matchs en direct..");
+
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse>("fixtures?live=all");
+                if (response == null || response.Response == null)
+                {
+                    Console.WriteLine("Aucun match en direct trouvé");
+                    return new List<Match>();
+                }
+
+                Console.WriteLine($"{response.Response.Count} matches en direct reçus ");
+
+                //appliquer l'heure exacte
+                foreach (var match in response.Response)
+                {
+                    match.Fixture.Date = ConvertLiveMatchTime(match.Fixture.Status);
+                }
+
+                var sortedMatches = response.Response
+                    .OrderBy(m => GetLeaguePriority(m.League.Country))
+                    .ThenBy(m => m.League.Country)
+                    .ThenBy(m => m.League.Name)
+                    .ToList();
+                return sortedMatches;
+            }
+
+            catch (Exception ex)
+            {
+                Console.WriteLine($" Erreur lors de l'appel API pour les matchs en direct : {ex.Message}");
+                return new List<Match>();
+            }
+        }
+
+    }
+}
