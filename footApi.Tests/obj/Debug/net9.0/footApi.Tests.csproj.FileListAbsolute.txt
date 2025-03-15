@@ -196,3 +196,4 @@ C:\footballapi\footApi.Tests\obj\Debug\net9.0\refint\footApi.Tests.dll
 C:\footballapi\footApi.Tests\obj\Debug\net9.0\footApi.Tests.pdb
 C:\footballapi\footApi.Tests\obj\Debug\net9.0\footApi.Tests.genruntimeconfig.cache
 C:\footballapi\footApi.Tests\obj\Debug\net9.0\ref\footApi.Tests.dll
+C:\footballapi\footApi.Tests\obj\Debug\net9.0\footApi.Tests.sourcelink.json
