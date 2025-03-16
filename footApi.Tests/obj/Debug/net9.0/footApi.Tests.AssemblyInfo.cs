@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("footApi.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+91d09f6b3b62345781630fe83c0f74e584892494")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e1f0aa15cb6070d1c10086efc7bcc22a30b888ab")]
 [assembly: System.Reflection.AssemblyProductAttribute("footApi.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("footApi.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

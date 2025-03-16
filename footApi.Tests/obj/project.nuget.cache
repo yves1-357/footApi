@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "EoAc+71tlTg=",
+  "dgSpecHash": "RNogPCWB18k=",
   "success": true,
-  "projectFilePath": "C:\\footballapi\\footApi.Tests\\footApi.Tests.csproj",
+  "projectFilePath": "C:\\Users\\iradu\\Documents\\footApi\\footApi.Tests\\footApi.Tests.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\iradu\\.nuget\\packages\\jetbrains.annotations\\2025.1.0-eap1\\jetbrains.annotations.2025.1.0-eap1.nupkg.sha512",
     "C:\\Users\\iradu\\.nuget\\packages\\microsoft.applicationinsights\\2.22.0\\microsoft.applicationinsights.2.22.0.nupkg.sha512",
