@@ -11,17 +11,9 @@ Il permet de :
 
 ## Lancement local
 
-Installer le SDK .NET 9, puis créer `api/wwwroot/appsettings.json` (ignoré par Git) :
-
-```json
-{
-  "ApiSportsKey": "VOTRE_CLE_API_SPORTS"
-}
-```
+Installer le SDK .NET 9.
 
 Lancer `dotnet run --project api/footApi.csproj --launch-profile http`, puis ouvrir http://localhost:5298.
-
-La configuration est chargée dans le navigateur par Blazor WebAssembly ; la clé reste accessible aux utilisateurs de l'application.
 
 ## Structure du projet
 
